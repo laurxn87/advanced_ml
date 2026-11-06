@@ -68,6 +68,20 @@ This report summarises the development and evaluation of two convolutional neura
     \item Compare CNN A and CNN B using validation and test performance, along with estimated computational effort.
 \end{itemize}
 
+\section{Draft Report Notes}
+\begin{itemize}[leftmargin=1.5em]
+    \item \textbf{CNN A rationale:} CNN A was chosen as a compact task-specific baseline because the dataset is relatively small and the goal was to build a sensible model that could be trained efficiently without excessive complexity.
+    \item \textbf{CNN B rationale:} CNN B was developed using transfer learning from the saved CNN A weights so that the model could reuse useful low- and mid-level visual features instead of learning them from scratch.
+    \item \textbf{Architecture choice:} The CNN uses repeated convolutional blocks with batch normalisation and pooling layers, followed by global pooling and a softmax classifier, which is a common and effective design for image classification tasks with modest dataset size.
+    \item \textbf{Data augmentation:} Training-time augmentation was used to improve robustness to small changes in pose, scale, and viewpoint; this included rotation, shifts, shear, zoom, and horizontal flipping.
+    \item \textbf{Class imbalance handling:} The dataset was mildly imbalanced across species, so class weighting was used to reduce the influence of majority classes without artificially duplicating images.
+    \item \textbf{Comparison metric:} The models were compared using validation and test loss, together with classification accuracy, because these are clear and interpretable measures for a multi-class image recognition task.
+    \item \textbf{Performance vs efficiency:} CNN B may offer a practical advantage if it reaches comparable or better accuracy with fewer training epochs or less optimisation effort, while CNN A remains useful as a direct task-specific baseline.
+    \item \textbf{Computational context:} The full 525-species problem would require substantially more memory, training time, and class balancing care than the 10-species subset used in this project.
+    \item \textbf{Scaling recommendation:} For the full 525-species task, a pretrained backbone such as EfficientNet, ResNet, or MobileNet would be a more scalable approach, especially if transfer learning is combined with class weighting and careful validation-driven tuning.
+    \item \textbf{Overall interpretation:} The project demonstrates a sensible comparative workflow: a custom CNN baseline, a transfer-learned comparison model, and an evaluation of the trade-off between predictive performance and computational cost.
+\end{itemize}
+
 \chapter{Dataset and Preprocessing}
 \section{Data Description}
 \begin{itemize}[leftmargin=1.5em]
