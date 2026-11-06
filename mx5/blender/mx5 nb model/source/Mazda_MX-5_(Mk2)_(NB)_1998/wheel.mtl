@@ -1,0 +1,64 @@
+# Blender 5.2.2 LTS MTL File: 'wheel.blend'
+# www.blender.org
+
+newmtl MainColor.001
+Ns 627.751526
+Ka 1.000000 1.000000 1.000000
+Kd 0.291659 0.291659 0.291659
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_refl /Users/lauryn/Documents/mx5/bbs-rs16-tuner-car-wheel/source/TextureMetallic.png
+
+newmtl Material.004
+Ns 701.547241
+Ka 1.000000 1.000000 1.000000
+Kd 0.479320 0.171441 0.033105
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+
+newmtl Material.005
+Ns 715.976379
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd /Users/lauryn/Documents/mx5/bbs-rs16-tuner-car-wheel/source/TextureMetallic.png
+map_refl /Users/lauryn/Documents/mx5/bbs-rs16-tuner-car-wheel/source/TextureMetallic.png
+
+newmtl SeconadryColor.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+
+newmtl Textures.001
+Ns 0.000000
+Ka 1.000000 1.000000 1.000000
+Kd 0.800000 0.800000 0.800000
+Ks 0.000000 0.000000 0.000000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 1
+
+newmtl Tire.001
+Ns 250.000000
+Ka 1.000000 1.000000 1.000000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.500000
+d 1.000000
+illum 3
+map_Kd /Users/lauryn/Documents/mx5/bbs-rs16-tuner-car-wheel/source/TireColor.png
