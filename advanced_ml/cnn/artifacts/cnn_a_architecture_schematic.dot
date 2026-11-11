@@ -1,0 +1,30 @@
+digraph CNN_A {
+    graph [
+        rankdir=LR,
+        bgcolor="white",
+        pad="0.18",
+        nodesep="0.28",
+        ranksep="0.38",
+        splines=ortho,
+        outputorder=edgesfirst
+    ];
+    node [
+        shape=box,
+        style="rounded,filled",
+        color="#35516f",
+        fillcolor="#edf3f8",
+        fontname="Helvetica",
+        fontsize=13,
+        margin="0.16,0.12",
+        penwidth=1.4
+    ];
+    edge [color="#526b85", penwidth=1.5, arrowsize=0.8];
+
+    input [label="Input\n224 x 224 x 3", fillcolor="#e4edf5"];
+    features [label="Four convolutional blocks\n64 / 128 / 128 / 32 filters\nEach: Conv2D, batch normalization,\nand 2 x 2 max pooling"];
+    gap [label="Global average\npooling", fillcolor="#eaf4ed", color="#4a7a5a"];
+    classifier [label="Dense layer: 64 units (ReLU)\nDropout", fillcolor="#eaf4ed", color="#4a7a5a"];
+    output [label="Softmax output\n10 classes", fillcolor="#fff2df", color="#bd7b2b"];
+
+    input -> features -> gap -> classifier -> output;
+}

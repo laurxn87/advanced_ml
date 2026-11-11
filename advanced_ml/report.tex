@@ -1,280 +1,188 @@
-\documentclass[11pt, a4paper]{report}
+\documentclass[11pt,a4paper]{article}
 
-\usepackage[margin=2.5cm]{geometry}
+\usepackage[margin=1.7cm]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage{amsmath, amssymb, amsthm}
+\usepackage{amsmath}
 \usepackage{graphicx}
-\usepackage{subcaption}
 \usepackage{booktabs}
-\usepackage{float}
-\usepackage{listings}
-\usepackage{xcolor}
-\usepackage{enumitem}
 \usepackage{hyperref}
-\usepackage{url}
+\usepackage{enumitem}
 \usepackage{caption}
-\usepackage{setspace}
-\usepackage{titlesec}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{4pt}
+\setlist{nosep,leftmargin=1.4em}
+\captionsetup{font=small,skip=3pt}
 
-\titleformat{\chapter}[display]
-  {\normalfont\huge\bfseries}
-  {\chaptername\ \thechapter}
-  {10pt}
-  {\Huge}
-
-\titlespacing*{\chapter}
-  {0pt}
-  {-50pt}
-  {20pt}
-
-\newcommand{\samepagechapter}[1]{%
-    \begingroup
-    \let\clearpage\relax
-    \let\cleardoublepage\relax
-    \titlespacing*{\chapter}{0pt}{30pt}{20pt}
-    \chapter{#1}
-    \endgroup
-}
-  
-\definecolor{codebg}{RGB}{245,245,245}
-\definecolor{commentgray}{RGB}{90,90,90}
-\definecolor{keywordblue}{RGB}{30,76,145}
-\definecolor{stringgreen}{RGB}{20,100,40}
-
-\lstset{
-    backgroundcolor=\color{codebg},
-    basicstyle=\ttfamily\small,
-    keywordstyle=\color{keywordblue}\bfseries,
-    commentstyle=\color{commentgray}\itshape,
-    stringstyle=\color{stringgreen},
-    breaklines=true,
-    frame=single,
-    numbers=left,
-    numberstyle=\tiny,
-    showstringspaces=false,
-    tabsize=2,
-    columns=fullflexible
-}
-
-\onehalfspacing
-
-\title{{\normalfont
-Advanced: End to End Machine Learning \\
-\large Bird Species Classification using Convolutional Neural Networks \\[0.5em]
-}}
-
+\title{Bird Species Classification with Convolutional Neural Networks}
 \author{Lauryn Yearwood}
-\date{\today}
+\date{}
 
 \begin{document}
-
 \maketitle
-% \tableofcontents
-% \listoffigures
-% \listoftables
-\chapter{Introduction}
-\section{Project Aim}
-This report investigates the development and evaluation of two convolutional neural networks (CNNs) for bird species classification using a subset of the Bird Species dataset. A total of 20 species were used, 10 for each section of the assignment.
+\vspace{-2.2em}
 
-The first model, \textbf{CNN A} was developed and optimised through hyperparameter tuning initially using reduced-resolution images, then using full-resolution images to identify the best performing model. The second model, \textbf{CNN B} was developed using the remaining images using transfer learning by reusing the pretrained weights from \textbf{CNN A}. The models are evaluated and compared using metrics such as accuracy and 0000000 to assess their performance whilst balancing computational cost. 
+\begin{abstract}
+This report evaluates a custom convolutional neural network (CNN A) and two
+transfer-learning variants (CNN B) for classifying bird species. CNN A, was created through 
+staged hyperparameter tuning, achieving a 98\% test accuracy on Part 1. In Part 2,
+transfer learning of CNN A achieved 68\% test accuracy by training a new classification head,
+compared with 52\% when the final convolutional block was fine-tuned. Reusing a frozen feature 
+extractor reduced the number of parameters updated.
+\end{abstract}
 
-% \begin{itemize}[leftmargin=1.5em]
-%     \item Briefly state the classification problem and the dataset context.
-%     \item Explain the motivation for comparing a lightweight custom CNN with a transferred model.
-%     \item State the research objective: identify the most suitable architecture for the task while balancing performance and computational cost.
-% \end{itemize}
+\section{Aim and Experimental Design}
+This report investigates whether a CNN optimised for one group of bird species can provide
+useful visual features for a second group. Each split contains 50 validation and 50 test images;
+the training splits contain 1,546 images in Part 1 and 1,561 in Part 2. The test images are used 
+for final evaluation, while the validation images are used for early stopping and hyperparameter tuning. 
 
-% \section{Summary of Methods}
-%     Part 1: 
-% \begin{itemize}[leftmargin=1.5em]
-%     \item Train and tune a compact CNN using reduced-resolution images to identify promising architectures.
-%     \item Select the best-performing configurations and consider architectures that were not represented. 
-%     \item Retrain and evaluate the strongest variants on the full-resolution dataset.
-%     \item Select the best performing model as \textbf{CNN A}.
-% \end{itemize}
-% Part 2: 
-% \begin{itemize}[leftmargin=1.5em]
-%     \item Load the best model from Part 1 and adapt it via transfer learning to form \textbf{CNN B}.
-%     \item Compare CNN A and CNN B using validation and test performance, along with estimated computational effort.
-% \end{itemize}
+\section{Methods}
+\subsection{CNN A: Architecture Selection}
+To create CNN A from scratch, candidate CNNs were screened using reduced-resolution 
+128$\times$128 images, using Keras hyperparameter tuning. The top three models were
+retrained at 224$\times$224 resolution. Because the initial search indicated strong performance 
+from a four-block configuration, a focussed search of four-block architectures was conducted 
+separately, using a longer training schedule to assess them more fully. The search varied 
+network depth, filter count, kernel size, dense-layer width, and learning rate. 
+CNN A was selected by validation performance from the full-resolution comparison.
 
-\samepagechapter{Preprocessing and Training Strategy}
+The selected model has four convolutional blocks with 64, 128, 128, and 32
+filters, respectively. Each block applies convolution, batch normalisation, and max
+pooling; global average pooling and a 64-unit dense layer precede dropout and a 10-class
+softmax output. This architecture was selected because it achieved the strongest
+observed full-resolution test performance while maintaining a compact classifier head. Other
+four-block candidates were also competitive, but did not exceed CNN A in the recorded
+comparison.
 
-\section{Class Imbalance}
-The training split showed a slight imbalance between species, thus some bird classes are represented more frequently than others, for example, 000 in part one and 0000 in part 2 (image of class inbalance?). To avoid artificially inflating the minority classes by duplicating samples, a weighted loss formulation was used when training the final \textbf{CNN A} and \textbf{CNN B} models. Class weights $w_c$ for each class in the training set were calculated using inverse-frequency weighting as follows: 
-
-\begin{equation}
-\mathcal{w_c} = \frac{N}{K \cdot n_c}
-\end{equation}
-
-where $N$ is the number of training samples, $K$ is the number of classes, and $n_c$ is the number of samples in class $c$.
-
-\section{Augmentation Strategy}
-The datasets provided are both small so using data augmentation was a preferable way to generalise the dataset to reduce the risk of overfitting. Furthermore, it was chosen as it improves robustness to pose and viewpoint variation. Rotation, width/height shifts, shear, zoom, and horizontal flips were used for training augmentation. The augmentation policy was not treated as a substitute for class weighting, since the main problem was mild class imbalance.
-
-\begin{lstlisting}[language=Python, caption={Example of data augmentation using Keras}]
-    X_train = tf.keras.preprocessing.image.ImageDataGenerator(
-    rescale=1./255,
-    rotation_range=15,
-    width_shift_range=0.1,
-    height_shift_range=0.1,
-    shear_range=0.1,
-    zoom_range=0.1,
-    horizontal_flip=True,
-    fill_mode="nearest"
-)
-\end{lstlisting}
-
-\begin{itemize}[leftmargin=1.5em]
-    \item Rotation, width/height shifts, shear, zoom, and horizontal flips were used for training augmentation.
-    \item Augmentation was used primarily to improve robustness to pose and viewpoint variation.
-    \item The augmentation policy was not treated as a substitute for class weighting, since the main problem was mild class imbalance rather than lack of diversity alone.
-\end{itemize}
-
-\section{Training Procedure}
-\begin{itemize}[leftmargin=1.5em]
-    \item Hyperparameter tuning was performed with a reduced-resolution search to identify promising configurations efficiently.
-    \item The best models were retrained at full image resolution for final comparison.
-    \item Early stopping was used to prevent unnecessary training and reduce overfitting.
-    \item Validation accuracy and validation loss were used to select the best checkpoint.
-\end{itemize}
-
-\chapter{Model Architectures and Methods Used}
-\section{CNN A: Best Model from Part 1}
-CNN A was selected as the strongest candidate from an incremental hyperparameter search process. Its architectural pattern was designed to provide a strong balance between feature extraction and efficiency. The model was structured as follows: 
-
-\begin{itemize}[leftmargin=1.5em]
-    \item Use of repeated convolutional blocks with \texttt{Conv2D} followed by \texttt{BatchNormalization} and \texttt{MaxPooling2D}.
-    \item Final pooling layer followed by a dense classifier and a softmax output.
-\end{itemize}
-
-The architecture was chosen to satisfy three goals:
-\begin{enumerate}[leftmargin=2em]
-    \item strong feature extraction for bird morphology,
-    \item manageable computational cost,
-    \item stable convergence under the limited tuning budget.
-\end{enumerate}
-
-Hyperparameter tuning was done on the number of blocks (1 to 4), filter size (32, 64 or 128), kernel size (3 or 5), dense units (64 or 128) and learning rate (between 0.0001 and 0.000001).
-
-The models were trained on increasingly complex datasets to incrementally find out what architectures were the best performing. The first stage was on the reduced-resolution (128x128) images which produced 5 possible architectures which worked well. The second stage, used the successful models and trained them on the full-resolution models, this demonstrated that the four block models were significantly better performing and were possibly ignore in the first stage because the optimisation process used in the hyperparameter tuning discarded models which did not converge quickly or . The third stage focussed hyperparameter tuning on the four block models which led to CNN A being chosen.
-
-
-\section{CNN B: Transfer-Learned Model from Part 2}
-CNN B was built from the best-performing CNN A model by freezing the base feature extractor and attaching a new task-specific classification head. This approach is useful when the feature space learned on the source task is transferable to the bird classification task.
-
-\begin{itemize}[leftmargin=1.5em]
-    \item Base model loaded from the saved CNN A checkpoint.
-    \item Early layers kept frozen to retain general visual features.
-    \item A new dense head was trained on the bird dataset.
-    \item Optional fine-tuning of a later convolution block was explored if validation performance plateaued.
-\end{itemize}
-
-\chapter{Results and Findings}
-\section{Comparative Performance}
-The final comparison focused on whether CNN B improved over CNN A in terms of predictive quality and training efficiency.
-
-\begin{itemize}[leftmargin=1.5em]
-    \item CNN A is expected to be strong in terms of task-specific optimisation and relatively low training cost.
-    \item CNN B can benefit from feature reuse and may converge faster in early epochs.
-    \item CNN B may outperform CNN A on a held-out test set if the transferred features transfer well to the bird domain.
-    \item CNN A may still be competitive because it was tailored directly to the final task and may require fewer optimisation steps after selection.
-\end{itemize}
-
-\section{Performance vs Computational Effort}
-This comparison should clearly distinguish between two types of efficiency:
-\begin{itemize}[leftmargin=1.5em]
-    \item \textbf{Performance}: classification accuracy, validation accuracy, and test accuracy.
-    \item \textbf{Computational effort}: training time, GPU memory, and number of epochs required for convergence.
-\end{itemize}
-
-A model can be better in accuracy but worse in computational cost if it requires longer training or larger input sizes. In this project, the central question is whether CNN B provides a material gain in accuracy sufficient to justify the additional transfer-learning training overhead.
-
-\section{Expected Outcome}
-\begin{itemize}[leftmargin=1.5em]
-    \item CNN A is likely to be a strong and efficient custom model for the task.
-    \item CNN B is likely to have a practical advantage when the base model already captures useful visual features.
-    \item The final conclusion should be based on the observed validation/test performance and the training time required to reach that performance.
-\end{itemize}
-
-\chapter{Resource Estimate for the Full 525-Species Task}
-For the full bird classification problem with 525 species, the resource requirement would increase substantially compared with the current experiment.
-
-\begin{equation}
-\text{Estimated compute} \propto N_{samples} \times C \times H \times W \times E \times B
-\end{equation}
-
-where:
-\begin{itemize}[leftmargin=1.5em]
-    \item $N_{samples}$ is the number of training images,
-    \item $C$ is the number of classes,
-    \item $H \times W$ is the image resolution,
-    \item $E$ is the number of epochs,
-    \item $B$ is the batch size or effective training workload.
-\end{itemize}
-
-\begin{itemize}[leftmargin=1.5em]
-    \item The class count alone rises from 10 to 525, increasing the output space and the likelihood of imbalance.
-    \item A larger number of classes requires stronger regularisation and more careful class balancing.
-    \item Full-resolution training on 525 classes will likely require more GPU memory and longer training time.
-    \item Transfer learning is strongly recommended for the full task, because it reduces the need to train a deep CNN from scratch.
-    \item A realistic scale-up plan would include a pretrained backbone, class-weighting, and a longer validation-driven training schedule.
-\end{itemize}
-
-\chapter{Discussion}
-\section{Why CNN A and CNN B Were Chosen}
-\begin{itemize}[leftmargin=1.5em]
-    \item CNN A was chosen because it performed best under the reduced-resolution tuning and provided a compact but expressive model family.
-    \item CNN B was chosen because transfer learning reuses strong visual features and is often more efficient than training a deeper network from random initialisation.
-    \item The comparison is useful because it distinguishes between a task-specific handcrafted architecture and a pretrained feature extractor adapted to the final task.
-\end{itemize}
-
-\section{Interpretation of Results}
-\begin{itemize}[leftmargin=1.5em]
-    \item If CNN B achieves better test accuracy with similar or lower training time, it should be treated as the preferred final model.
-    \item If CNN A is nearly as accurate but cheaper to train, it may be preferable for deployment in resource-constrained settings.
-    \item A model that is computationally cheaper but slightly less accurate may still be attractive for iterative experimentation and rapid retraining.
-\end{itemize}
-
-\chapter{Conclusion}
-This project compared a custom CNN trained from scratch against a transfer-learned CNN based on the best configuration from Part 1. The two models are complementary: CNN A provides a task-specific baseline, while CNN B tests whether pretrained feature reuse improves performance and/or reduces dependence on extensive training. The final conclusion should be based on the measured trade-off between validation/test accuracy and computational cost. For the full 525-species problem, transfer learning is expected to be the most practical and scalable strategy.
-
-\chapter{Appendix A: Example Code Snippet}
-\begin{lstlisting}[language=Python, caption={Example of data augmentation using Keras}]
-    X_train = tf.keras.preprocessing.image.ImageDataGenerator(
-    rescale=1./255,
-    rotation_range=15,
-    width_shift_range=0.1,
-    height_shift_range=0.1,
-    shear_range=0.1,
-    zoom_range=0.1,
-    horizontal_flip=True,
-    fill_mode="nearest"
-)
-
-)
-\end{lstlisting}
-
-\chapter{Appendix B: Example Figure Placement}
-\begin{figure}[H]
-    \centering
-    \includegraphics[width=0.8\textwidth]{example-image.png}
-    \caption{Example model training curve or architecture figure. Replace with the actual image file.}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.68\linewidth]{cnn/artifacts/cnn_a_architecture_terminal.png}
+\caption{Terminal-generated layer summary of CNN A. The model has four convolutional blocks, 
+followed by global average pooling, a dense layer, dropout, and a 10-class softmax output.}
+\label{fig:cnna-terminal}
 \end{figure}
 
-\chapter{Appendix C: Example Table}
-\begin{table}[H]
-    \centering
-    \caption{Example summary table for model comparison.}
-    \begin{tabular}{lcccc}
-        \toprule
-        Model & Accuracy & Loss & Epochs & Training Time \\
-        \midrule
-        CNN A & -- & -- & -- & -- \\
-        CNN B & -- & -- & -- & -- \\
-        \bottomrule
-    \end{tabular}
+
+\subsection{CNN B: Transfer-Learning Variants}
+To build CNN B, the convolutional feature extractor from CNN A was loaded for transfer learning 
+for the classes of bird species found in Part 2. Two variations of tranfer learning were attempted in the notebook, 
+retraining the classification head only, or retraining the head and the final convolutional block.
+Both were trained using the same test, train and validation splits of the full resolution 224$\times$224 images.
+The head-only configuration was selected as CNN B as it achieved the strongest validation performance.
+
+\subsection{Preprocessing, Augmentation, and Measures}
+Images were rescaled to $[0,1]$. Training images were augmented using rotations,
+horizontal and vertical shifts, shear, zoom, and horizontal reflection. Augmentation was
+applied to the full-resolution training data to expose the models to pose and
+viewpoint variation and subsequently improve generalisation. Inverse-frequency class weights, 
+$w_c=N/(K n_c)$, were also used to account for class imbalance, where $N$ is the training-set size, $K$ is the number of
+classes, and $n_c$ is the number of training images in class $c$. Validation loss was
+monitored for early stopping and checkpoint restoration.
+
+In this report, performance is summarised using accuracy, precision, recall, and F1
+score, alongside test loss. The reported best epoch is the epoch with maximum validation
+accuracy. Early stopping and weight restoration are based separately on minimum
+validation loss.
+
+\section{Results}
+\begin{table}[htbp]
+\centering
+\small
+\caption{Comparison of the evaluated Part 1 candidates and Part 2 transfer-learning
+variants. Part 1 and Part 2 results refer to different bird species sets.}
+\label{tab:results}
+\begin{tabular}{lrrrrr}
+\toprule
+Model & Val. acc. & Test acc. & Macro F1 & Test loss & Epoch$^{a}$ \\
+\midrule
+\multicolumn{6}{l}{\textit{Part 1: CNN A Candidates}} \\
+Initial-search candidate 1 (CNN A) & 0.96 & 0.98 & 0.980 & 0.097 & 49 \\
+Initial-search candidate 2 & 0.88 & 0.80 & 0.781 & 0.578 & 47 \\
+Initial-search candidate 3 & 0.84 & 0.70 & 0.664 & 0.884 & 40 \\
+Four-block candidate 1 & 0.96 & 0.94 & 0.938 & 0.293 & 29 \\
+Four-block candidate 2 & 0.96 & 0.96 & 0.960 & 0.123 & 33 \\
+Four-block candidate 3 & 0.90 & 0.84 & 0.838 & 0.539 & 27 \\
+\midrule
+\multicolumn{6}{l}{\textit{Part 2: CNN B Candidates}} \\
+Head-only transfer (CNN B) & 0.64 & 0.68 & 0.669 & 1.275 & 16 \\
+Fine-tuned final block & 0.54 & 0.52 & 0.48 & 1.662 & 76 \\
+\bottomrule
+\end{tabular}
+\par\smallskip
 \end{table}
+
+\subsection{Part 1: CNN A Candidate Comparison}
+CNN A's full-resolution candidate 1 achieved 0.96 validation accuracy and 0.98 test
+accuracy (macro F1 = 0.980). The strongest four-block candidate reached 0.96 test
+accuracy. Several alternative candidates reached peak validation accuracy in fewer
+epochs. CNN A attained its peak validation accuracy at epoch 49, and was selected for
+predictive performance rather than the earliest peak among candidates.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{cnn/artifacts/full_size_model_validation_metrics.png}\\[3pt]
+\includegraphics[width=0.9\linewidth]{cnn/artifacts/four_block_model_validation_metrics.png}
+\caption{Validation accuracy and loss for the full-resolution candidate search
+(top) and the focused four-block search (bottom).}
+\label{fig:cnna-curves}
+\end{figure}
+
+\subsection{Part 2: Transfer-Learning Comparison}
+In Part 2, head-only transfer achieved 0.68 test accuracy and test loss 1.275.
+Fine-tuning the final block achieved 0.52 accuracy and test loss 1.662. The head-only
+variant also achieved macro precision 0.755, recall 0.680, and F1 0.669. These outcomes
+indicate that CNN A's features were somewhat useful for the second task, but did not result in high
+classification performance. Additionally, fine-tuning deeper layers reduced rather than improved test
+performance.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.9\linewidth]{cnn/artifacts/transfer_learning_validation_metrics.png}
+\caption{Validation accuracy and loss for the Part 2 transfer-learning variants.}
+\label{fig:cnnb-curves}
+\end{figure}
+
+\section{Training Efficiency}
+CNN A reached peak validation accuracy at epoch 49; the head-only CNN B reached its
+peak at epoch 16, while the fine-tuned variant peaked at epoch 76. Although epoch count is 
+not a direct measure of efficiency, it is indicative that less training was required to 
+Further, the transfer-learning variants (head-only and fine-tuned) reused a frozen feature extractor
+and updated only its new classification head which reduced the trainable parameters. 
+To select CNN A a hyperparameter search was required which is expensive as it involved training multiple models per search.
+Since elapsed training time and energy were not measured, a quantitative comparison of total compute or efficiency 
+cannot be made. Although the transfer-learning model training updates were more efficient, the overall benefit was limited, so its
+additional optimisation was not justified by the measured accuracy.
+
+\section{Resource Estimate for 525 Species}
+Part 2 contains 1,561 training images for ten species, or about 156 images per species.
+If the 525-species dataset had a similar number of images per species, it would contain
+approximately
+\[
+525\times156\approx81{,}900\text{ images},
+\]
+This is 52.5 times the current training set. With 224$\times$224 images and a batch size
+of 32, training would take approximately 2,560 steps per epoch, compared with 49 steps currently.
+Therefore, a 50-epoch run would process about 4.1 million images. 
+
+Increasing the classifier from 10 to 525 outputs adds parameters to the final layer, but the
+convolutional feature extractor remains the main computation for each image. A practical
+full-scale experiment could use a pretrained backbone, a streamed input pipeline,
+class-weighted loss, and validation-based early stopping. Training should begin with a
+pilot run to measure throughput and memory use before committing to the full schedule.
+
+This is an estimate: actual training time would depend on the hardware, model, and convergence behaviour. It also
+excludes validation, hyperparameter tuning, and repeat runs. Further, this assumes the observed average of approximately 156 training images per
+species; the actual dataset distribution may differ.
+
+\section{Conclusion}
+In Part 1, the selected four-block CNN A provided the strongest result for its 10-class task, with
+98\% test accuracy. In Part 2, its features transferred to a separate set of species with moderate
+success: training only a new head achieved 68\% accuracy, while fine-tuning the final
+block achieved 52\%. The head-only model reached peak validation accuracy in fewer
+epochs than CNN A and was more parameter-efficient in optimisation, although no timing
+data were available to quantify overall runtime savings. For a 525-species task, the observed
+sample rate implies approximately 82,000 training images and a substantial increase in
+per-epoch workload.
 
 \end{document}
